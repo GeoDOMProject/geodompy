@@ -1,0 +1,51 @@
+[project]
+name = "geodompy"
+version = "0.2.0"
+description = "Acceso a datos geoespaciales estandarizados de República Dominicana"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Daniel E. de la Rosa", email = "me@dnldelarosa.com"}
+]
+keywords = ["gis", "geospatial", "dominican-republic", "geodata", "maps"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+
+dependencies = [
+    "geopandas>=0.14",
+    "pandas>=2.0",
+    "requests>=2.28",
+    "pins>=0.8",
+    "rapidfuzz>=3.0",
+    "matplotlib>=3.7",
+    "rdata>=0.11",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+plotly = ["plotly>=5.0"]
+
+[project.urls]
+Homepage = "https://github.com/GeoDOMProject/geodompy"
+Documentation = "https://geodom.adatar.do"
+Repository = "https://github.com/GeoDOMProject/geodompy"
+Issues = "https://github.com/GeoDOMProject/geodompy/issues"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
