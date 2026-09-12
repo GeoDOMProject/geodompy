@@ -30,3 +30,27 @@ def test_municipalities_are_transformed_from_utm_to_geographic_coordinates():
     assert -73 < xmin < xmax < -68
     assert 17 < ymin < ymax < 21
     assert frame.MUN_CODE.nunique() == 158
+
+def test_cache_reuses_geometry_without_another_download(tmp_path, monkeypatch):
+    import geopandas as gpd
+    import requests
+    from shapely.geometry import Point
+    from types import SimpleNamespace
+    from geodompy.cache import fetch_and_cache
+
+    monkeypatch.setenv("GEODOM_CACHE_DIR", str(tmp_path))
+    original = gpd.GeoDataFrame({"PROV": ["01", "02"]},
+        geometry=[Point(-70, 19), Point(-71, 18)], crs=4326)
+    response = SimpleNamespace(content=original.to_json().encode(),
+        raise_for_status=lambda: None, headers={"etag": '"cache-contract"'})
+    monkeypatch.setattr(requests, "head", lambda *a, **kw: response)
+    monkeypatch.setattr(requests, "get", lambda *a, **kw: response)
+    first = fetch_and_cache("RD_PROV")
+
+    def unexpected_download(*args, **kwargs):
+        raise AssertionError("The second read must use the persisted cache")
+    monkeypatch.setattr(requests, "get", unexpected_download)
+    cached = fetch_and_cache("RD_PROV")
+    assert cached.crs.to_epsg() == 4326
+    assert cached.geometry.equals(first.geometry)
+    assert cached.PROV_CODE.tolist() == ["01", "02"]
