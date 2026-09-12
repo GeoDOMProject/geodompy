@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MPLBACKEND: Agg
-      GEODOM_CACHE_DIR: ${{ runner.temp }}/geodom-cache
+      GEODOM_CACHE_DIR: /tmp/geodom-cache
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
