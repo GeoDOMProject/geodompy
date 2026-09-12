@@ -1,6 +1,6 @@
 [project]
 name = "geodompy"
-version = "1.0.0"
+version = "1.1.0"
 description = "Acceso a datos geoespaciales estandarizados de República Dominicana"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -51,3 +51,6 @@ include = ["geodompy*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+geodompy = ["assets/*.js", "assets/*.css", "assets/*.txt"]
