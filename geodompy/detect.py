@@ -96,6 +96,10 @@ def detect_level(
             'total_count': None
         }
     
+    code_levels = {"BP_CODE": "bparajes", "SEC_CODE": "sections", "DM_CODE": "dm", "MUN_CODE": "municipalities", "PROV_CODE": "provinces", "REG_CODE": "regions"}
+    for candidate, candidate_level in code_levels.items():
+        if candidate in data and (name is None or name == candidate) and (key is None or key == candidate) and (level is None or level == candidate_level):
+            return {"level": candidate_level, "name": candidate, "key": candidate, "match_count": None, "total_count": None}
     # Obtener datos de referencia
     admin_data = _get_admin_levels_data()
     

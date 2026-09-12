@@ -3,6 +3,7 @@ Sistema de cache usando pins para interoperabilidad con geodomR.
 """
 
 import os
+from io import BytesIO
 import warnings
 from pathlib import Path
 from typing import Optional
@@ -13,20 +14,23 @@ import pins
 import requests
 
 from geodompy._constants import BASE_DATA_URL, CACHE_DIR_NAME
+from geodompy._codes import add_codes, restore_crs
 
 
 def _get_cache_dir() -> Path:
     """
     Obtiene el directorio de cache compatible con R pins.
 
-    En Windows usa ~/Documents/.geodom para coincidir con geodomR.
+    Los pines Python se aíslan de los pines R, cuyos formatos no son intercambiables.
+    GEODOM_CACHE_DIR permite elegir la raíz sin modificar la caché anterior.
     """
     if os.name == "nt":
         documents = Path(os.environ.get("USERPROFILE", Path.home())) / "Documents"
     else:
         documents = Path.home()
 
-    cache_dir = documents / f".{CACHE_DIR_NAME}"
+    cache_root = Path(os.environ.get("GEODOM_CACHE_DIR", documents / f".{CACHE_DIR_NAME}"))
+    cache_dir = cache_root / "python-v1"
     cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir
 
@@ -193,7 +197,7 @@ def fetch_and_cache(
                 print(f"Cargando '{data_id}' desde cache local.")
             gdf = _read_cached_geodataframe(data_id, board)
             if gdf is not None:
-                return gdf
+                return add_codes(restore_crs(gdf, data_id))
         elif verbose:
             print(f"Pin '{data_id}' encontrado, pero el remoto cambio. Actualizando.")
 
@@ -209,14 +213,16 @@ def fetch_and_cache(
         pass
 
     try:
-        gdf = gpd.read_file(url)
+        response = requests.get(url, timeout=60)
+        response.raise_for_status()
+        gdf = gpd.read_file(BytesIO(response.content))
     except Exception as e:
         if _pin_exists(data_id, board):
             if verbose:
                 print(f"Fallo al descargar datos remotos. Usando cache local: {e}")
             gdf = _read_cached_geodataframe(data_id, board)
             if gdf is not None:
-                return gdf
+                return add_codes(restore_crs(gdf, data_id))
         raise RuntimeError(f"Error descargando '{data_id}': {e}") from e
 
     try:
@@ -227,7 +233,7 @@ def fetch_and_cache(
         if verbose:
             print(f"Aviso: No se pudo guardar en cache: {cache_error}")
 
-    return gdf
+    return add_codes(restore_crs(gdf, data_id))
 
 
 def get_dataset(

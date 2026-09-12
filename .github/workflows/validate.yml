@@ -1,0 +1,21 @@
+name: Validate release
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      matrix:
+        python: ['3.9', '3.13']
+    runs-on: ubuntu-latest
+    env:
+      MPLBACKEND: Agg
+      GEODOM_CACHE_DIR: ${{ runner.temp }}/geodom-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install '.[dev]' build
+      - run: pytest -q
+      - run: python -m build

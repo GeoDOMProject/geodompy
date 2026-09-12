@@ -50,7 +50,7 @@ from geodompy.detect import (
 from geodompy.hierarchy import add_parent_cols, gd_add_parent_cols
 from geodompy.map import gd_geom_sf, gd_map, gd_map_data, gd_mpl_plot, map, map_data
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 
 __all__ = [
     "provinces",

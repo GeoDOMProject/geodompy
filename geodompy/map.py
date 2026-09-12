@@ -22,6 +22,7 @@ from geodompy.clean import (
 )
 from geodompy.data import bparajes, dm, municipalities, provinces, regions, sections, zones
 from geodompy.detect import detect_fill, detect_level
+from geodompy._codes import CODE_PARTS, code
 
 
 def _normalize_name(name: object) -> str:
@@ -107,9 +108,20 @@ def map_data(
     else:
         data_names = data_copy[info["name"]].tolist()
         geo_names = geo_df[info["key"]].tolist()
+        if info["key"] in CODE_PARTS:
+            width = 11 if info["key"] == "BP_CODE" else 2 * len(CODE_PARTS[info["key"]])
+            data_names = [code(value, width) for value in data_names]
 
     data_copy["_join_key"] = [_normalize_name(value) for value in data_names]
     geo_df["_join_key"] = [_normalize_name(value) for value in geo_names]
+    if fill not in data_copy:
+        raise ValueError("La variable de color no existe en los datos.")
+    keys = data_copy.loc[data_copy["_join_key"] != "", "_join_key"]
+    if keys.duplicated().any():
+        raise ValueError("Hay filas duplicadas por unidad territorial. Agrega los datos antes de mapear.")
+    ambiguous = set(geo_df.loc[geo_df["_join_key"].duplicated(), "_join_key"])
+    if any(value in ambiguous for value in keys):
+        raise ValueError("La clave territorial es ambigua. Usa un codigo compuesto como MUN_CODE o BP_CODE.")
 
     data_dict = {}
     for _, row in data_copy.iterrows():

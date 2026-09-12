@@ -1,6 +1,6 @@
 [project]
 name = "geodompy"
-version = "0.2.0"
+version = "1.0.0"
 description = "Acceso a datos geoespaciales estandarizados de República Dominicana"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -10,7 +10,7 @@ authors = [
 ]
 keywords = ["gis", "geospatial", "dominican-republic", "geodata", "maps"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -46,6 +46,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["geodompy*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

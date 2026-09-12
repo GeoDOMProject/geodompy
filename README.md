@@ -1,13 +1,13 @@
 # geodompy
 
-Version actual: `0.2.0`.
+Version actual: `1.0.0`.
 
 Acceso a datos geoespaciales estandarizados de República Dominicana en Python.
 
 ## Instalación
 
 ```bash
-pip install geodompy
+pip install https://github.com/GeoDOMProject/geodompy/releases/download/v1.0.0/geodompy-1.0.0-py3-none-any.whl
 ```
 
 ## Uso Rápido
@@ -49,8 +49,10 @@ gd.gd_map(datos, labels=True)
 
 ## Interoperabilidad con R
 
-Este paquete usa `pins` para caché local, lo que permite compartir datos
-descargados entre Python y R (`geodomR`).
+Los paquetes usan las mismas fuentes públicas, con cachés separadas para evitar
+mezclar objetos RDS de R y Parquet de Python. Python guarda sus pines en
+`~/.geodom/python-v1` (en Windows, dentro de Documents). `GEODOM_CACHE_DIR`
+permite cambiar la raíz. La caché anterior se conserva sin modificar.
 
 ## Desarrollo
 
