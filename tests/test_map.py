@@ -6,6 +6,8 @@ import pytest
 import pandas as pd
 import geopandas as gpd
 import matplotlib
+import importlib
+from shapely.geometry import Polygon
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -148,6 +150,32 @@ class TestMap:
         
         result = gd.map(data, title='Test Map')
         assert isinstance(result, plt.Figure)
+        plt.close('all')
+
+    def test_map_with_manual_category_colors_and_background(self, monkeypatch):
+        """map() conserva colores por categoria y fondo."""
+        import geodompy as gd
+
+        module = importlib.import_module('geodompy.map')
+        frame = gpd.GeoDataFrame(
+            {'TOPONIMIA': ['Uno', 'Dos', 'Tres'], 'grupo': ['A', 'B', 'A']},
+            geometry=[Polygon([(0,0),(1,0),(1,1),(0,0)]), Polygon([(1,0),(2,0),(2,1),(1,0)]), Polygon([(2,0),(3,0),(3,1),(2,0)])],
+            crs=4326,
+        )
+        frame.attrs.update(fill_var='grupo', geo_level='provinces')
+        monkeypatch.setattr(module, 'map_data', lambda *args, **kwargs: frame.copy())
+
+        result = gd.map(
+            pd.DataFrame(),
+            fill='grupo',
+            palette='set2',
+            colors={'A': '#ffffff', 'B': '#ff0000'},
+            domain=['B', 'A'],
+            missing='#123456',
+            background_color='#334455',
+        )
+        assert isinstance(result, plt.Figure)
+        assert result.get_facecolor()[:3] == pytest.approx((0.2, 0.2666667, 0.3333333))
         plt.close('all')
 
     def test_map_with_labels_true(self):

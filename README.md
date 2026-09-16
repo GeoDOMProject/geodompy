@@ -1,13 +1,13 @@
 # geodompy
 
-Version actual: `1.1.0`.
+Version actual: `1.2.0`.
 
 Acceso a datos geoespaciales estandarizados de República Dominicana en Python.
 
 ## Instalación
 
 ```bash
-pip install https://github.com/GeoDOMProject/geodompy/releases/download/v1.1.0/geodompy-1.1.0-py3-none-any.whl
+pip install https://github.com/GeoDOMProject/geodompy/releases/download/v1.2.0/geodompy-1.2.0-py3-none-any.whl
 ```
 
 ## Uso Rápido
@@ -26,6 +26,18 @@ datos = pd.DataFrame({
 })
 
 gd.map(datos)  # Detecta nivel y variable automáticamente
+```
+
+Las categorías aceptan colores exactos y un fondo personalizado:
+
+```python
+colores = {
+    "DAVID COLLADO": "#1565c0",
+    "CAROLINA MEJÍA": "#ffffff",
+    "WELLINGTON ARNAUD": "#f1d7a3",
+    "LEONEL FERNÁNDEZ": "#2e7d32",
+}
+gd.map(datos, fill="preferencia", colors=colores, background_color="#526860")
 ```
 
 También puedes usar aliases con prefijo `gd_*` para acercarte a la API de
@@ -64,7 +76,7 @@ pytest
 
 MIT
 
-## Mapas interactivos (1.1.0)
+## Mapas interactivos (1.2.0)
 
 ```python
 import pandas as pd

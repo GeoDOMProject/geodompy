@@ -5,11 +5,13 @@ Funciones para preparar y crear mapas coropleticos de Republica Dominicana.
 from __future__ import annotations
 
 import unicodedata
+from collections.abc import Mapping, Sequence
 from typing import Any, Optional
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 
 from geodompy.clean import (
     clean_bparaje_name,
@@ -23,6 +25,7 @@ from geodompy.clean import (
 from geodompy.data import bparajes, dm, municipalities, provinces, regions, sections, zones
 from geodompy.detect import detect_fill, detect_level
 from geodompy._codes import CODE_PARTS, code
+from geodompy.palettes import Palette, discrete_colors, normalize_color, resolve_palette
 
 
 def _normalize_name(name: object) -> str:
@@ -154,6 +157,11 @@ def _plot_map_frame(
     map_df: gpd.GeoDataFrame,
     fill_var: str,
     cmap: str,
+    palette: Palette,
+    colors: Optional[Mapping[str, str]],
+    domain: Optional[Sequence[str]],
+    missing: str,
+    background_color: str,
     legend: bool,
     edgecolor: str,
     linewidth: float,
@@ -166,22 +174,29 @@ def _plot_map_frame(
     if ax is None:
         _, ax = plt.subplots(1, 1)
 
+    missing = normalize_color(missing, "El color sin datos")
+    background_color = normalize_color(background_color, "El color de fondo")
+    ax.set_facecolor(background_color)
     map_df.plot(
         ax=ax,
-        color="#e0e0e0",
+        color=missing,
         edgecolor="#a0a0a0",
         linewidth=linewidth * 0.5,
     )
-    map_df.plot(
-        column=fill_var,
-        ax=ax,
-        cmap=cmap,
-        legend=legend,
-        edgecolor=edgecolor,
-        linewidth=linewidth,
-        missing_kwds={"color": "lightgrey", "edgecolor": "grey", "linewidth": linewidth * 0.5},
-        **kwargs,
+    fill_values = map_df[fill_var]
+    numeric_fill = pd.api.types.is_numeric_dtype(fill_values) and not pd.api.types.is_bool_dtype(fill_values)
+    palette_value = palette if palette is not None else cmap
+    plot_options = dict(
+        column=fill_var, ax=ax, legend=legend, edgecolor=edgecolor, linewidth=linewidth,
+        missing_kwds={"color": missing, "edgecolor": "grey", "linewidth": linewidth * 0.5},
     )
+    if numeric_fill:
+        plot_options["cmap"] = LinearSegmentedColormap.from_list("geodom", resolve_palette(palette_value, numeric=True))
+    else:
+        categories, category_colors = discrete_colors(fill_values, palette_value, colors, domain)
+        plot_options.update(cmap=ListedColormap([category_colors[value] for value in categories]), categorical=True, categories=categories)
+    plot_options.update(kwargs)
+    map_df.plot(**plot_options)
     ax.set_axis_off()
     return ax
 
@@ -248,6 +263,11 @@ def map(
     name: Optional[str] = None,
     key: Optional[str] = None,
     cmap: str = "viridis",
+    palette: Palette = None,
+    colors: Optional[Mapping[str, str]] = None,
+    domain: Optional[Sequence[str]] = None,
+    missing: str = "#cbd5e1",
+    background_color: str = "#eef4f1",
     figsize: tuple = (10, 8),
     title: Optional[str] = None,
     subtitle: Optional[str] = None,
@@ -274,6 +294,11 @@ def map(
         map_df,
         fill_var=fill_var,
         cmap=cmap,
+        palette=palette,
+        colors=colors,
+        domain=domain,
+        missing=missing,
+        background_color=background_color,
         legend=legend,
         edgecolor=edgecolor,
         linewidth=linewidth,
@@ -281,6 +306,7 @@ def map(
         **kwargs,
     )
     _add_labels(ax, map_df, labels, label_size, label_color, fill_var)
+    fig.patch.set_facecolor(normalize_color(background_color, "El color de fondo"))
 
     if title:
         ax.set_title(title, fontsize=14, fontweight="bold")
@@ -305,6 +331,11 @@ def gd_geom_sf(
     name: Optional[str] = None,
     key: Optional[str] = None,
     cmap: str = "viridis",
+    palette: Palette = None,
+    colors: Optional[Mapping[str, str]] = None,
+    domain: Optional[Sequence[str]] = None,
+    missing: str = "#cbd5e1",
+    background_color: str = "#eef4f1",
     legend: bool = True,
     edgecolor: str = "white",
     linewidth: float = 0.3,
@@ -326,6 +357,11 @@ def gd_geom_sf(
         map_df,
         fill_var=fill_var,
         cmap=cmap,
+        palette=palette,
+        colors=colors,
+        domain=domain,
+        missing=missing,
+        background_color=background_color,
         legend=legend,
         edgecolor=edgecolor,
         linewidth=linewidth,

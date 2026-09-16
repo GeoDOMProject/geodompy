@@ -50,3 +50,17 @@ def test_unknown_crs_and_empty_geometries_rejected(prepared):
 def test_invalid_options_rejected():
     with pytest.raises(ValueError,match='background'):
         map_interactive(pd.DataFrame(),background='unknown')
+
+def test_palette_category_colors_and_background_are_portable(prepared):
+    prepared['group']=['A','B']
+    prepared.attrs['fill_var']='group'
+    document=map_interactive(
+        pd.DataFrame(), context=False, palette='set2', colors={'B':'#ff0000'},
+        domain=['B','A'], missing='#123456', background_color='#334455'
+    )
+    payload=json.loads(gzip.decompress(base64.b64decode(re.search(r'data-encoding="gzip">(.*?)</script>',document,re.S)[1])))
+    assert payload['options']['domain']==['B','A']
+    assert payload['options']['colors']['B']=='#ff0000'
+    assert payload['options']['missing']=='#123456'
+    assert payload['options']['backgroundColor']=='#334455'
+    assert len(payload['options']['palette'])>=1
